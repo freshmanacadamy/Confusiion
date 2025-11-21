@@ -1,16 +1,14 @@
 {
-  "name": "ju-confession-bot",
-  "version": "1.0.0", 
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js"
+  "version": 2,
+  "functions": {
+    "api/index.js": {
+      "runtime": "nodejs18.x"
+    }
   },
-  "dependencies": {
-    "telegraf": "^4.16.3",
-    "firebase-admin": "^12.1.0",
-    "dotenv": "^16.4.5"
-  },
-  "engines": {
-    "node": "22.x"
-  }
+  "routes": [
+    {
+      "src": "/api",
+      "dest": "/api/index.js"
+    }
+  ]
 }
