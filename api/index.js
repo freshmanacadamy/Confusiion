@@ -2019,7 +2019,7 @@ bot.catch((err, ctx) => {
 });
 
 // ==================== VERCEL HANDLER ====================
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   // Set headers for CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
@@ -2039,12 +2039,13 @@ module.exports = async (req, res) => {
   if (req.method === 'POST') {
     try {
       // Initialize counter on first request
-      if (typeof confessionCounter === 'undefined' || confessionCounter === 0) {
+      if (typeof global.confessionCounter === 'undefined') {
         await initializeCounter();
+        global.confessionCounter = 0;
       }
       
       // Process Telegram update
-      await bot.handleUpdate(req.body);
+      await bot.processUpdate(req.body); // <-- use processUpdate
       res.status(200).send('OK');
       
     } catch (error) {
@@ -2055,4 +2056,4 @@ module.exports = async (req, res) => {
   } else {
     res.status(405).send('Method not allowed');
   }
-};
+}
