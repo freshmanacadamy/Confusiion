@@ -1,6 +1,32 @@
 require('dotenv').config();
 const { Telegraf, Markup, session } = require('telegraf');
 const admin = require('firebase-admin');
+// Add this after your imports
+function validateEnvironment() {
+  const required = [
+    'BOT_TOKEN',
+    'FIREBASE_PROJECT_ID', 
+    'FIREBASE_PRIVATE_KEY',
+    'FIREBASE_CLIENT_EMAIL',
+    'ADMIN_IDS'
+  ];
+
+  const missing = required.filter(key => !process.env[key]);
+  
+  if (missing.length > 0) {
+    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+  }
+
+  // Validate Firebase private key format
+  if (!process.env.FIREBASE_PRIVATE_KEY?.includes('BEGIN PRIVATE KEY')) {
+    throw new Error('FIREBASE_PRIVATE_KEY format invalid. Ensure it includes BEGIN/END PRIVATE KEY');
+  }
+
+  console.log('✅ Environment variables validated successfully');
+}
+
+// Call this in your startup
+validateEnvironment();
 
 // Initialize Firebase
 const serviceAccount = {
