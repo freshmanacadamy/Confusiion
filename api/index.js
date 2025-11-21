@@ -1986,6 +1986,7 @@ async function notifyUser(userId, number, status, reason = '') {
 }
 
 // ==================== ADMIN MESSAGING ====================
+// ==================== ADMIN MESSAGING ====================
 bot.action(/message_(.+)/, async (ctx) => {
   if (!isAdmin(ctx.from.id)) {
     await ctx.answerCbQuery('❌ Access denied');
@@ -2019,28 +2020,39 @@ bot.catch((err, ctx) => {
 
 // ==================== VERCEL HANDLER ====================
 module.exports = async (req, res) => {
-  try {
-    // Initialize counter on first request (or after restart)
-    if (confessionCounter === 0) {
-      await initializeCounter();
+  // Set headers for CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  
+  // Handle OPTIONS request (preflight)
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  // Handle GET request - show bot is running
+  if (req.method === 'GET') {
+    return res.status(200).send('🤫 JU Confession Bot is running!');
+  }
+  
+  // Handle POST request (Telegram webhook)
+  if (req.method === 'POST') {
+    try {
+      // Initialize counter on first request
+      if (typeof confessionCounter === 'undefined' || confessionCounter === 0) {
+        await initializeCounter();
+      }
+      
+      // Process Telegram update
+      await bot.handleUpdate(req.body);
+      res.status(200).send('OK');
+      
+    } catch (error) {
+      console.error('Webhook error:', error);
+      // Always return 200 to Telegram to prevent retries
+      res.status(200).send('OK');
     }
-    
-    await bot.handleUpdate(req.body);
-    res.status(200).send('OK');
-  } catch (error) {
-    console.error('Webhook error:', error);
-    res.status(500).send('Error');
+  } else {
+    res.status(405).send('Method not allowed');
   }
 };
-
-// ==================== LOCAL DEVELOPMENT ====================
-if (process.env.NODE_ENV === 'development') {
-  initializeCounter().then(() => {
-    bot.launch().then(() => {
-      console.log('🤫 JU Confession Bot running locally');
-    });
-  });
-  
-  process.once('SIGINT', () => bot.stop('SIGINT'));
-  process.once('SIGTERM', () => bot.stop('SIGTERM'));
-                                           }
